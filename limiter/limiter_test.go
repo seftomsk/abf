@@ -11,6 +11,11 @@ import (
 	"github.com/seftomsk/abf/limiter"
 )
 
+func TestSuite(t *testing.T) {
+	suite.Run(t, new(LimiterSuite))
+	suite.Run(t, new(LimitersSuite))
+}
+
 type LimiterSuite struct {
 	suite.Suite
 	limiter   *limiter.Limiter
@@ -49,11 +54,6 @@ func (suite *LimitersSuite) SetupTest() {
 
 	suite.limiter = multiLimiter
 	suite.bucket = bucket
-}
-
-func TestSuite(t *testing.T) {
-	suite.Run(t, new(LimiterSuite))
-	suite.Run(t, new(LimitersSuite))
 }
 
 func (suite *LimiterSuite) TestTokensExist() {
