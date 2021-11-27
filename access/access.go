@@ -15,6 +15,21 @@ var ErrInvalidStorage = errors.New("you must provide a storage")
 
 var ErrNotFound = errors.New("not found")
 
+var ErrEmptyIp = errors.New("empty ip")
+
+type ErrParseIp struct {
+	err error
+	msg string
+}
+
+func (e *ErrParseIp) Error() string {
+	return e.msg
+}
+
+func (e *ErrParseIp) Unwrap() error {
+	return e.err
+}
+
 type IStorage interface {
 	AddToWList(ctx context.Context, ip storage.IPEntity) error
 	AddToBList(ctx context.Context, ip storage.IPEntity) error
@@ -38,12 +53,15 @@ func NewIPAccess(storage IStorage) *IPAccess {
 
 func (a *IPAccess) parseIPAndMask(ip string) (string, string, error) {
 	if len(ip) <= 0 {
-		return "", "", fmt.Errorf("ip address is epmty")
+		return "", "", ErrEmptyIp
 	}
 
 	ipAddress, ipNet, err := net.ParseCIDR(ip)
 	if err != nil {
-		return "", "", fmt.Errorf("parseIPAndMask: %w", err)
+		return "", "", &ErrParseIp{
+			err: err,
+			msg: "parseIPAndMask",
+		}
 	}
 
 	byteMask := ipNet.Mask

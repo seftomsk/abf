@@ -53,26 +53,6 @@ func (s *StorageSuite) TestInvalidInitGetErr() {
 	require.ErrorIs(s.T(), err, storage.ErrInvalidInitialization)
 }
 
-func (s *StorageSuite) TestInvalidEntityGetErr() {
-	err := s.rep.AddToWList(s.ctx, s.ipAddress)
-	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
-
-	err = s.rep.AddToBList(s.ctx, s.ipAddress)
-	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
-
-	err = s.rep.DeleteFromWList(s.ctx, s.ipAddress)
-	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
-
-	err = s.rep.DeleteFromBList(s.ctx, s.ipAddress)
-	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
-
-	_, err = s.rep.IsInWList(s.ctx, s.ipAddress)
-	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
-
-	_, err = s.rep.IsInBList(s.ctx, s.ipAddress)
-	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
-}
-
 func (s *StorageSuite) TestGetDoneFromContextGetErr() {
 	s.T().Run("canceled context", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -118,6 +98,26 @@ func (s *StorageSuite) TestGetDoneFromContextGetErr() {
 		_, err = s.rep.IsInBList(ctx, s.ipAddress)
 		require.ErrorIs(s.T(), err, context.DeadlineExceeded)
 	})
+}
+
+func (s *StorageSuite) TestInvalidEntityGetErr() {
+	err := s.rep.AddToWList(s.ctx, s.ipAddress)
+	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
+
+	err = s.rep.AddToBList(s.ctx, s.ipAddress)
+	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
+
+	err = s.rep.DeleteFromWList(s.ctx, s.ipAddress)
+	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
+
+	err = s.rep.DeleteFromBList(s.ctx, s.ipAddress)
+	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
+
+	_, err = s.rep.IsInWList(s.ctx, s.ipAddress)
+	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
+
+	_, err = s.rep.IsInBList(s.ctx, s.ipAddress)
+	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
 }
 
 func (s *StorageSuite) TestAddToWListWithoutErr() {

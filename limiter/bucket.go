@@ -49,11 +49,7 @@ func (b *Bucket) CountAvailableTokens() int {
 }
 
 func (b *Bucket) CheckTokensExist() bool {
-	if b.CountAvailableTokens() <= 0 {
-		return false
-	}
-
-	return true
+	return b.CountAvailableTokens() > 0
 }
 
 func (b *Bucket) ClearBucket() {
