@@ -8,16 +8,11 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-
-	"github.com/stretchr/testify/require"
-
-	"github.com/stretchr/testify/suite"
-
 	"github.com/seftomsk/abf/access"
-
 	"github.com/seftomsk/abf/access/storage"
-
 	"github.com/seftomsk/abf/access/storage/memory"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 func TestSuite(t *testing.T) {
@@ -313,6 +308,7 @@ func (s *AccessSuite) TestIsInBListGetErr() {
 	require.Error(s.T(), err)
 }
 
+//nolint:dupl // Each block code for each case
 func (s *AccessSuite) TestMultipleAddToWListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -335,6 +331,7 @@ func (s *AccessSuite) TestMultipleAddToWListWithoutErr() {
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *AccessSuite) TestMultipleAddToBListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -357,6 +354,7 @@ func (s *AccessSuite) TestMultipleAddToBListWithoutErr() {
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *AccessSuite) TestMultipleDeleteFromWListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -400,6 +398,7 @@ func (s *AccessSuite) TestMultipleDeleteFromWListWithoutErr() {
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *AccessSuite) TestMultipleDeleteFromBListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -443,6 +442,7 @@ func (s *AccessSuite) TestMultipleDeleteFromBListWithoutErr() {
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *AccessSuite) TestMultipleIsInWListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -490,6 +490,7 @@ func (s *AccessSuite) TestMultipleIsInWListWithoutErr() {
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *AccessSuite) TestMultipleIsInBListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)

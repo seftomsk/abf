@@ -5,10 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/seftomsk/abf/limiter"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-
-	"github.com/seftomsk/abf/limiter"
 )
 
 func TestSuite(t *testing.T) {

@@ -9,7 +9,6 @@ import (
 	"net"
 
 	"github.com/google/uuid"
-
 	"github.com/seftomsk/abf/access/storage"
 )
 
@@ -31,8 +30,8 @@ func (e *ErrParseIP) Error() string {
 type IStorage interface {
 	AddToWList(ctx context.Context, ip storage.IPEntity) error
 	AddToBList(ctx context.Context, ip storage.IPEntity) error
-	DeleteFromWList(ctx context.Context, ip storage.IPEntity) error
-	DeleteFromBList(ctx context.Context, ip storage.IPEntity) error
+	DeleteFromWhiteList(ctx context.Context, ip storage.IPEntity) error
+	DeleteFromBlackList(ctx context.Context, ip storage.IPEntity) error
 	IsInWList(ctx context.Context, ip storage.IPEntity) (bool, error)
 	IsInBList(ctx context.Context, ip storage.IPEntity) (bool, error)
 }
@@ -137,7 +136,7 @@ func (a *IPAccess) DeleteFromWList(ctx context.Context, dto IPDTO) error {
 
 	ipAddress := storage.NewIPAddress("", ip, mask)
 
-	err = a.storage.DeleteFromWList(ctx, ipAddress)
+	err = a.storage.DeleteFromWhiteList(ctx, ipAddress)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			return fmt.Errorf("deleteFromWList: %w", ErrNotFound)
@@ -164,7 +163,7 @@ func (a *IPAccess) DeleteFromBList(ctx context.Context, dto IPDTO) error {
 
 	ipAddress := storage.NewIPAddress("", ip, mask)
 
-	err = a.storage.DeleteFromBList(ctx, ipAddress)
+	err = a.storage.DeleteFromBlackList(ctx, ipAddress)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			return fmt.Errorf("deleteFromBList: %w", ErrNotFound)

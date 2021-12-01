@@ -7,11 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/seftomsk/abf/access/storage"
 	"github.com/seftomsk/abf/access/storage/memory"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 func TestSuite(t *testing.T) {
@@ -40,10 +39,10 @@ func (s *StorageSuite) TestInvalidInitGetErr() {
 	err = rep.AddToBList(s.ctx, s.ipAddress)
 	require.ErrorIs(s.T(), err, storage.ErrInvalidInitialization)
 
-	err = rep.DeleteFromWList(s.ctx, s.ipAddress)
+	err = rep.DeleteFromWhiteList(s.ctx, s.ipAddress)
 	require.ErrorIs(s.T(), err, storage.ErrInvalidInitialization)
 
-	err = rep.DeleteFromBList(s.ctx, s.ipAddress)
+	err = rep.DeleteFromBlackList(s.ctx, s.ipAddress)
 	require.ErrorIs(s.T(), err, storage.ErrInvalidInitialization)
 
 	_, err = rep.IsInWList(s.ctx, s.ipAddress)
@@ -64,10 +63,10 @@ func (s *StorageSuite) TestGetDoneFromContextGetErr() {
 		err = s.rep.AddToBList(ctx, s.ipAddress)
 		require.ErrorIs(s.T(), err, context.Canceled)
 
-		err = s.rep.DeleteFromWList(ctx, s.ipAddress)
+		err = s.rep.DeleteFromWhiteList(ctx, s.ipAddress)
 		require.ErrorIs(s.T(), err, context.Canceled)
 
-		err = s.rep.DeleteFromBList(ctx, s.ipAddress)
+		err = s.rep.DeleteFromBlackList(ctx, s.ipAddress)
 		require.ErrorIs(s.T(), err, context.Canceled)
 
 		_, err = s.rep.IsInWList(ctx, s.ipAddress)
@@ -86,10 +85,10 @@ func (s *StorageSuite) TestGetDoneFromContextGetErr() {
 		err = s.rep.AddToBList(ctx, s.ipAddress)
 		require.ErrorIs(s.T(), err, context.DeadlineExceeded)
 
-		err = s.rep.DeleteFromWList(ctx, s.ipAddress)
+		err = s.rep.DeleteFromWhiteList(ctx, s.ipAddress)
 		require.ErrorIs(s.T(), err, context.DeadlineExceeded)
 
-		err = s.rep.DeleteFromBList(ctx, s.ipAddress)
+		err = s.rep.DeleteFromBlackList(ctx, s.ipAddress)
 		require.ErrorIs(s.T(), err, context.DeadlineExceeded)
 
 		_, err = s.rep.IsInWList(ctx, s.ipAddress)
@@ -107,10 +106,10 @@ func (s *StorageSuite) TestInvalidEntityGetErr() {
 	err = s.rep.AddToBList(s.ctx, s.ipAddress)
 	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
 
-	err = s.rep.DeleteFromWList(s.ctx, s.ipAddress)
+	err = s.rep.DeleteFromWhiteList(s.ctx, s.ipAddress)
 	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
 
-	err = s.rep.DeleteFromBList(s.ctx, s.ipAddress)
+	err = s.rep.DeleteFromBlackList(s.ctx, s.ipAddress)
 	require.ErrorIs(s.T(), err, storage.ErrInvalidEntity)
 
 	_, err = s.rep.IsInWList(s.ctx, s.ipAddress)
@@ -142,7 +141,7 @@ func (s *StorageSuite) TestDeleteFromWListWithoutErr() {
 		"192.1.1.0",
 		"255.255.255.128")
 	_ = s.rep.AddToWList(s.ctx, ipAddress)
-	err := s.rep.DeleteFromWList(s.ctx, ipAddress)
+	err := s.rep.DeleteFromWhiteList(s.ctx, ipAddress)
 	require.NoError(s.T(), err)
 }
 
@@ -152,7 +151,7 @@ func (s *StorageSuite) TestDeleteFromWListNoMaskGetErr() {
 		"192.1.1.0",
 		"255.255.255.128"))
 
-	err := s.rep.DeleteFromWList(s.ctx, storage.NewIPAddress(
+	err := s.rep.DeleteFromWhiteList(s.ctx, storage.NewIPAddress(
 		"",
 		"192.1.1.0",
 		"255.255.255.129"))
@@ -165,7 +164,7 @@ func (s *StorageSuite) TestDeleteFromWListNoIpGetErr() {
 		"192.1.1.0",
 		"255.255.255.128"))
 
-	err := s.rep.DeleteFromWList(s.ctx, storage.NewIPAddress(
+	err := s.rep.DeleteFromWhiteList(s.ctx, storage.NewIPAddress(
 		"",
 		"192.1.2.0",
 		"255.255.255.128"))
@@ -178,7 +177,7 @@ func (s *StorageSuite) TestDeleteFromBListWithoutErr() {
 		"192.1.1.0",
 		"255.255.255.128")
 	_ = s.rep.AddToBList(s.ctx, ipAddress)
-	err := s.rep.DeleteFromBList(s.ctx, ipAddress)
+	err := s.rep.DeleteFromBlackList(s.ctx, ipAddress)
 	require.NoError(s.T(), err)
 }
 
@@ -188,7 +187,7 @@ func (s *StorageSuite) TestDeleteFromBListNoMaskGetErr() {
 		"192.1.1.0",
 		"255.255.255.128"))
 
-	err := s.rep.DeleteFromBList(s.ctx, storage.NewIPAddress(
+	err := s.rep.DeleteFromBlackList(s.ctx, storage.NewIPAddress(
 		"",
 		"192.1.1.0",
 		"255.255.255.129"))
@@ -201,7 +200,7 @@ func (s *StorageSuite) TestDeleteFromBListNoIpGetErr() {
 		"192.1.1.0",
 		"255.255.255.128"))
 
-	err := s.rep.DeleteFromBList(s.ctx, storage.NewIPAddress(
+	err := s.rep.DeleteFromBlackList(s.ctx, storage.NewIPAddress(
 		"",
 		"192.1.2.0",
 		"255.255.255.128"))
@@ -282,6 +281,7 @@ func (s *StorageSuite) TestIsInBListNoIpGetErr() {
 	require.False(s.T(), exists)
 }
 
+//nolint:dupl // Each block code for each case
 func (s *StorageSuite) TestMultipleAddToWListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -310,6 +310,7 @@ func (s *StorageSuite) TestMultipleAddToWListWithoutErr() {
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *StorageSuite) TestMultipleAddToBListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -338,6 +339,7 @@ func (s *StorageSuite) TestMultipleAddToBListWithoutErr() {
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *StorageSuite) TestMultipleDeleteFromWListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -349,7 +351,7 @@ func (s *StorageSuite) TestMultipleDeleteFromWListWithoutErr() {
 				fmt.Sprintf("192.1.%v.0", i),
 				"255.255.255.128")
 			_ = s.rep.AddToWList(s.ctx, ipAddress)
-			err := s.rep.DeleteFromWList(s.ctx, ipAddress)
+			err := s.rep.DeleteFromWhiteList(s.ctx, ipAddress)
 			require.NoError(s.T(), err)
 		}(i)
 	}
@@ -361,7 +363,7 @@ func (s *StorageSuite) TestMultipleDeleteFromWListWithoutErr() {
 				fmt.Sprintf("192.1.%v.0", i),
 				"255.255.255.129")
 			_ = s.rep.AddToWList(s.ctx, ipAddress)
-			err := s.rep.DeleteFromWList(s.ctx, ipAddress)
+			err := s.rep.DeleteFromWhiteList(s.ctx, ipAddress)
 			require.NoError(s.T(), err)
 		}(i)
 	}
@@ -375,7 +377,7 @@ func (s *StorageSuite) TestMultipleDeleteFromWListWithoutErr() {
 				"",
 				fmt.Sprintf("192.1.%v.0", i),
 				"255.255.255.128")
-			err := s.rep.DeleteFromWList(s.ctx, ipAddress)
+			err := s.rep.DeleteFromWhiteList(s.ctx, ipAddress)
 			require.ErrorIs(s.T(), err, storage.ErrNotFound)
 		}(i)
 	}
@@ -386,13 +388,14 @@ func (s *StorageSuite) TestMultipleDeleteFromWListWithoutErr() {
 				"",
 				fmt.Sprintf("192.1.%v.0", i),
 				"255.255.255.129")
-			err := s.rep.DeleteFromWList(s.ctx, ipAddress)
+			err := s.rep.DeleteFromWhiteList(s.ctx, ipAddress)
 			require.ErrorIs(s.T(), err, storage.ErrNotFound)
 		}(i)
 	}
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *StorageSuite) TestMultipleDeleteFromBListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -404,7 +407,7 @@ func (s *StorageSuite) TestMultipleDeleteFromBListWithoutErr() {
 				fmt.Sprintf("192.1.%v.0", i),
 				"255.255.255.128")
 			_ = s.rep.AddToBList(s.ctx, ipAddress)
-			err := s.rep.DeleteFromBList(s.ctx, ipAddress)
+			err := s.rep.DeleteFromBlackList(s.ctx, ipAddress)
 			require.NoError(s.T(), err)
 		}(i)
 	}
@@ -416,7 +419,7 @@ func (s *StorageSuite) TestMultipleDeleteFromBListWithoutErr() {
 				fmt.Sprintf("192.1.%v.0", i),
 				"255.255.255.129")
 			_ = s.rep.AddToBList(s.ctx, ipAddress)
-			err := s.rep.DeleteFromBList(s.ctx, ipAddress)
+			err := s.rep.DeleteFromBlackList(s.ctx, ipAddress)
 			require.NoError(s.T(), err)
 		}(i)
 	}
@@ -430,7 +433,7 @@ func (s *StorageSuite) TestMultipleDeleteFromBListWithoutErr() {
 				"",
 				fmt.Sprintf("192.1.%v.0", i),
 				"255.255.255.128")
-			err := s.rep.DeleteFromBList(s.ctx, ipAddress)
+			err := s.rep.DeleteFromBlackList(s.ctx, ipAddress)
 			require.ErrorIs(s.T(), err, storage.ErrNotFound)
 		}(i)
 	}
@@ -441,13 +444,14 @@ func (s *StorageSuite) TestMultipleDeleteFromBListWithoutErr() {
 				"",
 				fmt.Sprintf("192.1.%v.0", i),
 				"255.255.255.129")
-			err := s.rep.DeleteFromBList(s.ctx, ipAddress)
+			err := s.rep.DeleteFromBlackList(s.ctx, ipAddress)
 			require.ErrorIs(s.T(), err, storage.ErrNotFound)
 		}(i)
 	}
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *StorageSuite) TestMultipleIsInWListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)
@@ -507,6 +511,7 @@ func (s *StorageSuite) TestMultipleIsInWListWithoutErr() {
 	wg.Wait()
 }
 
+//nolint:dupl // Each block code for each case
 func (s *StorageSuite) TestMultipleIsInBListWithoutErr() {
 	wg := &sync.WaitGroup{}
 	wg.Add(200)

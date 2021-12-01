@@ -8,6 +8,11 @@ import (
 	"github.com/seftomsk/abf/access/storage"
 )
 
+const (
+	white = "white"
+	black = "black"
+)
+
 type InMemory struct {
 	mu        sync.Mutex
 	whiteList map[string]map[string]struct{}
@@ -68,14 +73,15 @@ func (s *InMemory) AddToBList(
 	return nil
 }
 
-func (s *InMemory) DeleteFromWList(
+func (s *InMemory) deleteFromList(
 	ctx context.Context,
-	ip storage.IPEntity) error {
+	ip storage.IPEntity,
+	list string) error {
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return ctxErr
 	}
 
-	if s.whiteList == nil {
+	if s.whiteList == nil || s.blackList == nil {
 		return storage.ErrInvalidInitialization
 	}
 
@@ -86,64 +92,40 @@ func (s *InMemory) DeleteFromWList(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.whiteList[ip.Mask()] == nil {
-		return fmt.Errorf(
-			"deleteFromWList - mask: %w",
-			storage.ErrNotFound)
+	var currentList map[string]map[string]struct{}
+	if list == white {
+		currentList = s.whiteList
+	} else {
+		currentList = s.blackList
 	}
 
-	if _, ok := s.whiteList[ip.Mask()][ip.IP()]; !ok {
-		return fmt.Errorf(
-			"deleteFromWList - ip: %w",
-			storage.ErrNotFound)
+	if currentList[ip.Mask()] == nil {
+		return fmt.Errorf("mask: %w", storage.ErrNotFound)
 	}
 
-	delete(s.whiteList[ip.Mask()], ip.IP())
+	if _, ok := currentList[ip.Mask()][ip.IP()]; !ok {
+		return fmt.Errorf("ip: %w", storage.ErrNotFound)
+	}
 
-	if len(s.whiteList[ip.Mask()]) == 0 {
-		delete(s.whiteList, ip.Mask())
+	delete(currentList[ip.Mask()], ip.IP())
+
+	if len(currentList[ip.Mask()]) == 0 {
+		delete(currentList, ip.Mask())
 	}
 
 	return nil
 }
 
-func (s *InMemory) DeleteFromBList(
+func (s *InMemory) DeleteFromWhiteList(
 	ctx context.Context,
 	ip storage.IPEntity) error {
-	if ctxErr := ctx.Err(); ctxErr != nil {
-		return ctxErr
-	}
+	return s.deleteFromList(ctx, ip, white)
+}
 
-	if s.blackList == nil {
-		return storage.ErrInvalidInitialization
-	}
-
-	if !storage.ValidEntity(ip) {
-		return storage.ErrInvalidEntity
-	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.blackList[ip.Mask()] == nil {
-		return fmt.Errorf(
-			"deleteFromBList - mask: %w",
-			storage.ErrNotFound)
-	}
-
-	if _, ok := s.blackList[ip.Mask()][ip.IP()]; !ok {
-		return fmt.Errorf(
-			"deleteFromBList - ip: %w",
-			storage.ErrNotFound)
-	}
-
-	delete(s.blackList[ip.Mask()], ip.IP())
-
-	if len(s.blackList[ip.Mask()]) == 0 {
-		delete(s.blackList, ip.Mask())
-	}
-
-	return nil
+func (s *InMemory) DeleteFromBlackList(
+	ctx context.Context,
+	ip storage.IPEntity) error {
+	return s.deleteFromList(ctx, ip, black)
 }
 
 func (s *InMemory) IsInBList(

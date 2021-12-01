@@ -63,32 +63,32 @@ func (mr *MockIStorageMockRecorder) AddToWList(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToWList", reflect.TypeOf((*MockIStorage)(nil).AddToWList), arg0, arg1)
 }
 
-// DeleteFromBList mocks base method.
-func (m *MockIStorage) DeleteFromBList(arg0 context.Context, arg1 storage.IPEntity) error {
+// DeleteFromBlackList mocks base method.
+func (m *MockIStorage) DeleteFromBlackList(arg0 context.Context, arg1 storage.IPEntity) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteFromBList", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteFromBlackList", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteFromBList indicates an expected call of DeleteFromBList.
+// DeleteFromBlackList indicates an expected call of DeleteFromBlackList.
 func (mr *MockIStorageMockRecorder) DeleteFromBList(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromBList", reflect.TypeOf((*MockIStorage)(nil).DeleteFromBList), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromBlackList", reflect.TypeOf((*MockIStorage)(nil).DeleteFromBlackList), arg0, arg1)
 }
 
-// DeleteFromWList mocks base method.
-func (m *MockIStorage) DeleteFromWList(arg0 context.Context, arg1 storage.IPEntity) error {
+// DeleteFromWhiteList mocks base method.
+func (m *MockIStorage) DeleteFromWhiteList(arg0 context.Context, arg1 storage.IPEntity) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteFromWList", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteFromWhiteList", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteFromWList indicates an expected call of DeleteFromWList.
+// DeleteFromWhiteList indicates an expected call of DeleteFromWhiteList.
 func (mr *MockIStorageMockRecorder) DeleteFromWList(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromWList", reflect.TypeOf((*MockIStorage)(nil).DeleteFromWList), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromWhiteList", reflect.TypeOf((*MockIStorage)(nil).DeleteFromWhiteList), arg0, arg1)
 }
 
 // IsInBList mocks base method.
