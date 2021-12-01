@@ -1,5 +1,7 @@
 package access
 
+//go:generate mockgen -destination=./mock_storage_test.go -package=access_test . IStorage
+
 import (
 	"context"
 	"errors"
@@ -15,19 +17,15 @@ var ErrInvalidStorage = errors.New("you must provide a storage")
 
 var ErrNotFound = errors.New("not found")
 
-var ErrEmptyIp = errors.New("empty ip")
+var ErrEmptyIP = errors.New("empty ip")
 
-type ErrParseIp struct {
+type ErrParseIP struct {
 	err error
 	msg string
 }
 
-func (e *ErrParseIp) Error() string {
+func (e *ErrParseIP) Error() string {
 	return e.msg
-}
-
-func (e *ErrParseIp) Unwrap() error {
-	return e.err
 }
 
 type IStorage interface {
@@ -43,7 +41,7 @@ type IPAccess struct {
 	storage IStorage
 }
 
-type IpDTO struct {
+type IPDTO struct {
 	IP string
 }
 
@@ -52,15 +50,15 @@ func NewIPAccess(storage IStorage) *IPAccess {
 }
 
 func (a *IPAccess) parseIPAndMask(ip string) (string, string, error) {
-	if len(ip) <= 0 {
-		return "", "", ErrEmptyIp
+	if len(ip) == 0 {
+		return "", "", ErrEmptyIP
 	}
 
 	ipAddress, ipNet, err := net.ParseCIDR(ip)
 	if err != nil {
-		return "", "", &ErrParseIp{
+		return "", "", &ErrParseIP{
 			err: err,
-			msg: "parseIPAndMask",
+			msg: "parseIPAndMask - could not parse ip address",
 		}
 	}
 
@@ -75,7 +73,7 @@ func (a *IPAccess) parseIPAndMask(ip string) (string, string, error) {
 	return ipAddress.String(), mask, nil
 }
 
-func (a *IPAccess) AddToWList(ctx context.Context, dto IpDTO) error {
+func (a *IPAccess) AddToWList(ctx context.Context, dto IPDTO) error {
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return ctxErr
 	}
@@ -99,7 +97,7 @@ func (a *IPAccess) AddToWList(ctx context.Context, dto IpDTO) error {
 	return nil
 }
 
-func (a *IPAccess) AddToBList(ctx context.Context, dto IpDTO) error {
+func (a *IPAccess) AddToBList(ctx context.Context, dto IPDTO) error {
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return ctxErr
 	}
@@ -123,7 +121,7 @@ func (a *IPAccess) AddToBList(ctx context.Context, dto IpDTO) error {
 	return nil
 }
 
-func (a *IPAccess) DeleteFromWList(ctx context.Context, dto IpDTO) error {
+func (a *IPAccess) DeleteFromWList(ctx context.Context, dto IPDTO) error {
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return ctxErr
 	}
@@ -150,7 +148,7 @@ func (a *IPAccess) DeleteFromWList(ctx context.Context, dto IpDTO) error {
 	return nil
 }
 
-func (a *IPAccess) DeleteFromBList(ctx context.Context, dto IpDTO) error {
+func (a *IPAccess) DeleteFromBList(ctx context.Context, dto IPDTO) error {
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return ctxErr
 	}
@@ -177,7 +175,7 @@ func (a *IPAccess) DeleteFromBList(ctx context.Context, dto IpDTO) error {
 	return nil
 }
 
-func (a *IPAccess) IsInWList(ctx context.Context, dto IpDTO) (bool, error) {
+func (a *IPAccess) IsInWList(ctx context.Context, dto IPDTO) (bool, error) {
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return false, ctxErr
 	}
@@ -204,7 +202,7 @@ func (a *IPAccess) IsInWList(ctx context.Context, dto IpDTO) (bool, error) {
 	return exists, nil
 }
 
-func (a *IPAccess) IsInBList(ctx context.Context, dto IpDTO) (bool, error) {
+func (a *IPAccess) IsInBList(ctx context.Context, dto IPDTO) (bool, error) {
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return false, ctxErr
 	}

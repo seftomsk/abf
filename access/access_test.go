@@ -7,10 +7,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
+
 	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/suite"
 
 	"github.com/seftomsk/abf/access"
+
+	"github.com/seftomsk/abf/access/storage"
+
 	"github.com/seftomsk/abf/access/storage/memory"
 )
 
@@ -22,15 +28,15 @@ type AccessSuite struct {
 	suite.Suite
 	ctx      context.Context
 	access   *access.IPAccess
-	emptyDTO access.IpDTO
-	validDTO access.IpDTO
+	emptyDTO access.IPDTO
+	validDTO access.IPDTO
 }
 
 func (s *AccessSuite) SetupTest() {
 	s.ctx = context.Background()
 	s.access = access.NewIPAccess(memory.Create())
-	s.emptyDTO = access.IpDTO{}
-	s.validDTO = access.IpDTO{IP: "192.1.1.0/25"}
+	s.emptyDTO = access.IPDTO{}
+	s.validDTO = access.IPDTO{IP: "192.1.1.0/25"}
 }
 
 func (s *AccessSuite) TestInvalidStorageGetErr() {
@@ -106,29 +112,29 @@ func (s *AccessSuite) TestGetDoneFromContextGetErr() {
 
 func (s *AccessSuite) TestEmptyIpGetErr() {
 	err := s.access.AddToWList(s.ctx, s.emptyDTO)
-	require.ErrorIs(s.T(), err, access.ErrEmptyIp)
+	require.ErrorIs(s.T(), err, access.ErrEmptyIP)
 
 	err = s.access.AddToBList(s.ctx, s.emptyDTO)
-	require.ErrorIs(s.T(), err, access.ErrEmptyIp)
+	require.ErrorIs(s.T(), err, access.ErrEmptyIP)
 
 	err = s.access.DeleteFromWList(s.ctx, s.emptyDTO)
-	require.ErrorIs(s.T(), err, access.ErrEmptyIp)
+	require.ErrorIs(s.T(), err, access.ErrEmptyIP)
 
 	err = s.access.DeleteFromBList(s.ctx, s.emptyDTO)
-	require.ErrorIs(s.T(), err, access.ErrEmptyIp)
+	require.ErrorIs(s.T(), err, access.ErrEmptyIP)
 
 	ok, err := s.access.IsInWList(s.ctx, s.emptyDTO)
-	require.ErrorIs(s.T(), err, access.ErrEmptyIp)
+	require.ErrorIs(s.T(), err, access.ErrEmptyIP)
 	require.False(s.T(), ok)
 
 	ok, err = s.access.IsInBList(s.ctx, s.emptyDTO)
-	require.ErrorIs(s.T(), err, access.ErrEmptyIp)
+	require.ErrorIs(s.T(), err, access.ErrEmptyIP)
 	require.False(s.T(), ok)
 }
 
 func (s *AccessSuite) TestInvalidIpGetErr() {
-	dto := access.IpDTO{IP: "a"}
-	var e *access.ErrParseIp
+	dto := access.IPDTO{IP: "a"}
+	var e *access.ErrParseIP
 
 	err := s.access.AddToWList(s.ctx, dto)
 	require.ErrorAs(s.T(), err, &e)
@@ -156,9 +162,16 @@ func (s *AccessSuite) TestAddToWListWithoutErr() {
 	require.NoError(s.T(), err)
 }
 
-// TODO
 func (s *AccessSuite) TestAddToWListGetErr() {
-
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+	m := NewMockIStorage(ctrl)
+	m.EXPECT().
+		AddToWList(gomock.Any(), gomock.Any()).
+		Return(storage.ErrInvalidInitialization)
+	a := access.NewIPAccess(m)
+	err := a.AddToWList(s.ctx, s.validDTO)
+	require.ErrorIs(s.T(), err, storage.ErrInvalidInitialization)
 }
 
 func (s *AccessSuite) TestAddToBListWithoutErr() {
@@ -166,9 +179,16 @@ func (s *AccessSuite) TestAddToBListWithoutErr() {
 	require.NoError(s.T(), err)
 }
 
-// TODO
 func (s *AccessSuite) TestAddToBListGetErr() {
-
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+	m := NewMockIStorage(ctrl)
+	m.EXPECT().
+		AddToBList(gomock.Any(), gomock.Any()).
+		Return(storage.ErrInvalidInitialization)
+	a := access.NewIPAccess(m)
+	err := a.AddToBList(s.ctx, s.validDTO)
+	require.ErrorIs(s.T(), err, storage.ErrInvalidInitialization)
 }
 
 func (s *AccessSuite) TestDeleteFromWListWithoutErr() {
@@ -184,13 +204,20 @@ func (s *AccessSuite) TestDeleteFromWListNotMaskGetErr() {
 
 func (s *AccessSuite) TestDeleteFromWListNotIpGetErr() {
 	_ = s.access.AddToWList(s.ctx, s.validDTO)
-	err := s.access.DeleteFromWList(s.ctx, access.IpDTO{IP: "192.1.2.0/25"})
+	err := s.access.DeleteFromWList(s.ctx, access.IPDTO{IP: "192.1.2.0/25"})
 	require.ErrorIs(s.T(), err, access.ErrNotFound)
 }
 
-// TODO
 func (s *AccessSuite) TestDeleteFromWListGetErr() {
-
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+	m := NewMockIStorage(ctrl)
+	m.EXPECT().
+		DeleteFromWList(gomock.Any(), gomock.Any()).
+		Return(storage.ErrInvalidEntity)
+	a := access.NewIPAccess(m)
+	err := a.DeleteFromWList(s.ctx, s.validDTO)
+	require.Error(s.T(), err)
 }
 
 func (s *AccessSuite) TestDeleteFromBListWithoutErr() {
@@ -206,13 +233,20 @@ func (s *AccessSuite) TestDeleteFromBListNotMaskGetErr() {
 
 func (s *AccessSuite) TestDeleteFromBListNotIpGetErr() {
 	_ = s.access.AddToBList(s.ctx, s.validDTO)
-	err := s.access.DeleteFromBList(s.ctx, access.IpDTO{IP: "192.1.2.0/25"})
+	err := s.access.DeleteFromBList(s.ctx, access.IPDTO{IP: "192.1.2.0/25"})
 	require.ErrorIs(s.T(), err, access.ErrNotFound)
 }
 
-// TODO
 func (s *AccessSuite) TestDeleteFromBListGetErr() {
-
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+	m := NewMockIStorage(ctrl)
+	m.EXPECT().
+		DeleteFromBList(gomock.Any(), gomock.Any()).
+		Return(storage.ErrInvalidEntity)
+	a := access.NewIPAccess(m)
+	err := a.DeleteFromBList(s.ctx, s.validDTO)
+	require.Error(s.T(), err)
 }
 
 func (s *AccessSuite) TestIsInWListWithoutErr() {
@@ -230,14 +264,21 @@ func (s *AccessSuite) TestIsInWListNoMaskGetErr() {
 
 func (s *AccessSuite) TestIsInWListNoIpGetErr() {
 	_ = s.access.AddToWList(s.ctx, s.validDTO)
-	ok, err := s.access.IsInWList(s.ctx, access.IpDTO{IP: "192.1.2.0/25"})
+	ok, err := s.access.IsInWList(s.ctx, access.IPDTO{IP: "192.1.2.0/25"})
 	require.ErrorIs(s.T(), err, access.ErrNotFound)
 	require.False(s.T(), ok)
 }
 
-// TODO
 func (s *AccessSuite) TestIsInWListGetErr() {
-
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+	m := NewMockIStorage(ctrl)
+	m.EXPECT().
+		IsInWList(gomock.Any(), gomock.Any()).
+		Return(false, storage.ErrInvalidEntity)
+	a := access.NewIPAccess(m)
+	_, err := a.IsInWList(s.ctx, s.validDTO)
+	require.Error(s.T(), err)
 }
 
 func (s *AccessSuite) TestIsInBListWithoutErr() {
@@ -255,14 +296,21 @@ func (s *AccessSuite) TestIsInBListNoMaskGetErr() {
 
 func (s *AccessSuite) TestIsInBListNoIpGetErr() {
 	_ = s.access.AddToBList(s.ctx, s.validDTO)
-	ok, err := s.access.IsInBList(s.ctx, access.IpDTO{IP: "192.1.2.0/25"})
+	ok, err := s.access.IsInBList(s.ctx, access.IPDTO{IP: "192.1.2.0/25"})
 	require.ErrorIs(s.T(), err, access.ErrNotFound)
 	require.False(s.T(), ok)
 }
 
-// TODO
 func (s *AccessSuite) TestIsInBListGetErr() {
-
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+	m := NewMockIStorage(ctrl)
+	m.EXPECT().
+		IsInBList(gomock.Any(), gomock.Any()).
+		Return(false, storage.ErrInvalidEntity)
+	a := access.NewIPAccess(m)
+	_, err := a.IsInBList(s.ctx, s.validDTO)
+	require.Error(s.T(), err)
 }
 
 func (s *AccessSuite) TestMultipleAddToWListWithoutErr() {
@@ -271,7 +319,7 @@ func (s *AccessSuite) TestMultipleAddToWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			err := s.access.AddToWList(s.ctx, dto)
 			require.NoError(s.T(), err)
 		}(i)
@@ -279,7 +327,7 @@ func (s *AccessSuite) TestMultipleAddToWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			err := s.access.AddToWList(s.ctx, dto)
 			require.NoError(s.T(), err)
 		}(i)
@@ -293,7 +341,7 @@ func (s *AccessSuite) TestMultipleAddToBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			err := s.access.AddToBList(s.ctx, dto)
 			require.NoError(s.T(), err)
 		}(i)
@@ -301,7 +349,7 @@ func (s *AccessSuite) TestMultipleAddToBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			err := s.access.AddToBList(s.ctx, dto)
 			require.NoError(s.T(), err)
 		}(i)
@@ -315,7 +363,7 @@ func (s *AccessSuite) TestMultipleDeleteFromWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			_ = s.access.AddToWList(s.ctx, dto)
 			err := s.access.DeleteFromWList(s.ctx, dto)
 			require.NoError(s.T(), err)
@@ -324,7 +372,7 @@ func (s *AccessSuite) TestMultipleDeleteFromWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			_ = s.access.AddToWList(s.ctx, dto)
 			err := s.access.DeleteFromWList(s.ctx, dto)
 			require.NoError(s.T(), err)
@@ -336,7 +384,7 @@ func (s *AccessSuite) TestMultipleDeleteFromWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			err := s.access.DeleteFromWList(s.ctx, dto)
 			require.ErrorIs(s.T(), err, access.ErrNotFound)
 		}(i)
@@ -344,7 +392,7 @@ func (s *AccessSuite) TestMultipleDeleteFromWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			err := s.access.DeleteFromWList(s.ctx, dto)
 			require.ErrorIs(s.T(), err, access.ErrNotFound)
 		}(i)
@@ -358,7 +406,7 @@ func (s *AccessSuite) TestMultipleDeleteFromBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			_ = s.access.AddToBList(s.ctx, dto)
 			err := s.access.DeleteFromBList(s.ctx, dto)
 			require.NoError(s.T(), err)
@@ -367,7 +415,7 @@ func (s *AccessSuite) TestMultipleDeleteFromBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			_ = s.access.AddToBList(s.ctx, dto)
 			err := s.access.DeleteFromBList(s.ctx, dto)
 			require.NoError(s.T(), err)
@@ -379,7 +427,7 @@ func (s *AccessSuite) TestMultipleDeleteFromBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			err := s.access.DeleteFromBList(s.ctx, dto)
 			require.ErrorIs(s.T(), err, access.ErrNotFound)
 		}(i)
@@ -387,7 +435,7 @@ func (s *AccessSuite) TestMultipleDeleteFromBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			err := s.access.DeleteFromBList(s.ctx, dto)
 			require.ErrorIs(s.T(), err, access.ErrNotFound)
 		}(i)
@@ -401,7 +449,7 @@ func (s *AccessSuite) TestMultipleIsInWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			_ = s.access.AddToWList(s.ctx, dto)
 			ok, err := s.access.IsInWList(s.ctx, dto)
 			require.NoError(s.T(), err)
@@ -411,7 +459,7 @@ func (s *AccessSuite) TestMultipleIsInWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			_ = s.access.AddToWList(s.ctx, dto)
 			ok, err := s.access.IsInWList(s.ctx, dto)
 			require.NoError(s.T(), err)
@@ -424,7 +472,7 @@ func (s *AccessSuite) TestMultipleIsInWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			ok, err := s.access.IsInWList(s.ctx, dto)
 			require.NoError(s.T(), err)
 			require.True(s.T(), ok)
@@ -433,7 +481,7 @@ func (s *AccessSuite) TestMultipleIsInWListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			ok, err := s.access.IsInWList(s.ctx, dto)
 			require.NoError(s.T(), err)
 			require.True(s.T(), ok)
@@ -448,7 +496,7 @@ func (s *AccessSuite) TestMultipleIsInBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			_ = s.access.AddToBList(s.ctx, dto)
 			ok, err := s.access.IsInBList(s.ctx, dto)
 			require.NoError(s.T(), err)
@@ -458,7 +506,7 @@ func (s *AccessSuite) TestMultipleIsInBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			_ = s.access.AddToBList(s.ctx, dto)
 			ok, err := s.access.IsInBList(s.ctx, dto)
 			require.NoError(s.T(), err)
@@ -471,7 +519,7 @@ func (s *AccessSuite) TestMultipleIsInBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/24", i)}
 			ok, err := s.access.IsInBList(s.ctx, dto)
 			require.NoError(s.T(), err)
 			require.True(s.T(), ok)
@@ -480,7 +528,7 @@ func (s *AccessSuite) TestMultipleIsInBListWithoutErr() {
 	for i := 0; i < 100; i++ {
 		go func(i int) {
 			defer wg.Done()
-			dto := access.IpDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
+			dto := access.IPDTO{IP: fmt.Sprintf("192.1.%v.0/25", i)}
 			ok, err := s.access.IsInBList(s.ctx, dto)
 			require.NoError(s.T(), err)
 			require.True(s.T(), ok)

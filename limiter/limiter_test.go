@@ -180,7 +180,7 @@ func (suite *LimiterSuite) TestMultipleAddingTokens() {
 	require.Equal(suite.T(), 4, availableTokens)
 }
 
-// Limiters
+// Limiters.
 func (suite *LimitersSuite) TestTokensExist() {
 	require.True(suite.T(), suite.bucket.CheckTokensExist())
 }
@@ -342,12 +342,12 @@ func (suite *LimitersSuite) TestMultipleDeletingToken() {
 	require.Equal(suite.T(), 0, availableTokens)
 
 	availableTokens = suite.limiter.
-		GetIpBucket("127.0.0.1").
+		GetIPBucket("127.0.0.1").
 		CountAvailableTokens()
 	require.Equal(suite.T(), 0, availableTokens)
 
 	availableTokens = suite.limiter.
-		GetIpBucket("127.0.0.2").
+		GetIPBucket("127.0.0.2").
 		CountAvailableTokens()
 	require.Equal(suite.T(), 0, availableTokens)
 }
@@ -411,12 +411,12 @@ func (suite *LimitersSuite) TestMultipleAddingTokens() {
 	require.Equal(suite.T(), 2, availableTokens)
 
 	availableTokens = multiLimiter.
-		GetIpBucket("127.0.0.1").
+		GetIPBucket("127.0.0.1").
 		CountAvailableTokens()
 	require.Equal(suite.T(), 2, availableTokens)
 
 	availableTokens = multiLimiter.
-		GetIpBucket("127.0.0.2").
+		GetIPBucket("127.0.0.2").
 		CountAvailableTokens()
 	require.Equal(suite.T(), 2, availableTokens)
 }

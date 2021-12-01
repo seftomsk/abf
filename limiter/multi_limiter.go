@@ -17,7 +17,7 @@ func NewMultiLimiter(login, password, ip *Limiter) *MultiLimiter {
 func (ml *MultiLimiter) GetBucket(login, password, ip string) IBucket {
 	lBucket := ml.GetLoginBucket(login)
 	pBucket := ml.GetPasswordBucket(password)
-	iBucket := ml.GetIpBucket(ip)
+	iBucket := ml.GetIPBucket(ip)
 
 	return &Buckets{collection: []IBucket{lBucket, pBucket, iBucket}}
 }
@@ -30,6 +30,6 @@ func (ml *MultiLimiter) GetPasswordBucket(key string) IBucket {
 	return ml.password.GetBucket(key)
 }
 
-func (ml *MultiLimiter) GetIpBucket(key string) IBucket {
+func (ml *MultiLimiter) GetIPBucket(key string) IBucket {
 	return ml.ip.GetBucket(key)
 }

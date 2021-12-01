@@ -8,14 +8,10 @@ import (
 	"github.com/seftomsk/abf/access/storage"
 )
 
-const (
-	white = "white"
-	black = "black"
-)
-
 type InMemory struct {
-	mu         sync.Mutex
-	collection map[string]map[string]map[string]struct{}
+	mu        sync.Mutex
+	whiteList map[string]map[string]struct{}
+	blackList map[string]map[string]struct{}
 }
 
 func (s *InMemory) AddToWList(
@@ -25,7 +21,7 @@ func (s *InMemory) AddToWList(
 		return ctxErr
 	}
 
-	if s.collection[white] == nil {
+	if s.whiteList == nil {
 		return storage.ErrInvalidInitialization
 	}
 
@@ -36,11 +32,11 @@ func (s *InMemory) AddToWList(
 		return storage.ErrInvalidEntity
 	}
 
-	if s.collection[white][ip.Mask()] == nil {
-		s.collection[white][ip.Mask()] = make(map[string]struct{})
+	if s.whiteList[ip.Mask()] == nil {
+		s.whiteList[ip.Mask()] = make(map[string]struct{})
 	}
 
-	s.collection[white][ip.Mask()][ip.IP()] = struct{}{}
+	s.whiteList[ip.Mask()][ip.IP()] = struct{}{}
 
 	return nil
 }
@@ -52,7 +48,7 @@ func (s *InMemory) AddToBList(
 		return ctxErr
 	}
 
-	if s.collection[black] == nil {
+	if s.blackList == nil {
 		return storage.ErrInvalidInitialization
 	}
 
@@ -63,11 +59,11 @@ func (s *InMemory) AddToBList(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.collection[black][ip.Mask()] == nil {
-		s.collection[black][ip.Mask()] = make(map[string]struct{})
+	if s.blackList[ip.Mask()] == nil {
+		s.blackList[ip.Mask()] = make(map[string]struct{})
 	}
 
-	s.collection[black][ip.Mask()][ip.IP()] = struct{}{}
+	s.blackList[ip.Mask()][ip.IP()] = struct{}{}
 
 	return nil
 }
@@ -79,7 +75,7 @@ func (s *InMemory) DeleteFromWList(
 		return ctxErr
 	}
 
-	if s.collection[white] == nil {
+	if s.whiteList == nil {
 		return storage.ErrInvalidInitialization
 	}
 
@@ -90,22 +86,22 @@ func (s *InMemory) DeleteFromWList(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.collection[white][ip.Mask()] == nil {
+	if s.whiteList[ip.Mask()] == nil {
 		return fmt.Errorf(
 			"deleteFromWList - mask: %w",
 			storage.ErrNotFound)
 	}
 
-	if _, ok := s.collection[white][ip.Mask()][ip.IP()]; !ok {
+	if _, ok := s.whiteList[ip.Mask()][ip.IP()]; !ok {
 		return fmt.Errorf(
 			"deleteFromWList - ip: %w",
 			storage.ErrNotFound)
 	}
 
-	delete(s.collection[white][ip.Mask()], ip.IP())
+	delete(s.whiteList[ip.Mask()], ip.IP())
 
-	if len(s.collection[white][ip.Mask()]) == 0 {
-		delete(s.collection[white], ip.Mask())
+	if len(s.whiteList[ip.Mask()]) == 0 {
+		delete(s.whiteList, ip.Mask())
 	}
 
 	return nil
@@ -118,7 +114,7 @@ func (s *InMemory) DeleteFromBList(
 		return ctxErr
 	}
 
-	if s.collection[black] == nil {
+	if s.blackList == nil {
 		return storage.ErrInvalidInitialization
 	}
 
@@ -129,22 +125,22 @@ func (s *InMemory) DeleteFromBList(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.collection[black][ip.Mask()] == nil {
+	if s.blackList[ip.Mask()] == nil {
 		return fmt.Errorf(
 			"deleteFromBList - mask: %w",
 			storage.ErrNotFound)
 	}
 
-	if _, ok := s.collection[black][ip.Mask()][ip.IP()]; !ok {
+	if _, ok := s.blackList[ip.Mask()][ip.IP()]; !ok {
 		return fmt.Errorf(
 			"deleteFromBList - ip: %w",
 			storage.ErrNotFound)
 	}
 
-	delete(s.collection[black][ip.Mask()], ip.IP())
+	delete(s.blackList[ip.Mask()], ip.IP())
 
-	if len(s.collection[black][ip.Mask()]) == 0 {
-		delete(s.collection[black], ip.Mask())
+	if len(s.blackList[ip.Mask()]) == 0 {
+		delete(s.blackList, ip.Mask())
 	}
 
 	return nil
@@ -157,7 +153,7 @@ func (s *InMemory) IsInBList(
 		return false, ctxErr
 	}
 
-	if s.collection[black] == nil {
+	if s.blackList == nil {
 		return false, storage.ErrInvalidInitialization
 	}
 
@@ -168,13 +164,13 @@ func (s *InMemory) IsInBList(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.collection[black][ip.Mask()] == nil {
+	if s.blackList[ip.Mask()] == nil {
 		return false, fmt.Errorf(
 			"isInBList - mask: %w",
 			storage.ErrNotFound)
 	}
 
-	if _, ok := s.collection[black][ip.Mask()][ip.IP()]; !ok {
+	if _, ok := s.blackList[ip.Mask()][ip.IP()]; !ok {
 		return false, fmt.Errorf(
 			"isInBList - ip: %w",
 			storage.ErrNotFound)
@@ -190,7 +186,7 @@ func (s *InMemory) IsInWList(
 		return false, ctxErr
 	}
 
-	if s.collection[white] == nil {
+	if s.whiteList == nil {
 		return false, storage.ErrInvalidInitialization
 	}
 
@@ -201,13 +197,13 @@ func (s *InMemory) IsInWList(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.collection[white][ip.Mask()] == nil {
+	if s.whiteList[ip.Mask()] == nil {
 		return false, fmt.Errorf(
 			"isInWList - mask: %w",
 			storage.ErrNotFound)
 	}
 
-	if _, ok := s.collection[white][ip.Mask()][ip.IP()]; !ok {
+	if _, ok := s.whiteList[ip.Mask()][ip.IP()]; !ok {
 		return false, fmt.Errorf(
 			"isInWList - ip: %w",
 			storage.ErrNotFound)
@@ -217,9 +213,8 @@ func (s *InMemory) IsInWList(
 }
 
 func Create() *InMemory {
-	collection := make(map[string]map[string]map[string]struct{})
-	collection[white] = make(map[string]map[string]struct{})
-	collection[black] = make(map[string]map[string]struct{})
-
-	return &InMemory{collection: collection}
+	return &InMemory{
+		whiteList: make(map[string]map[string]struct{}),
+		blackList: make(map[string]map[string]struct{}),
+	}
 }
