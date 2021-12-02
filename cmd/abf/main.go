@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/seftomsk/abf/access"
-	"github.com/seftomsk/abf/access/storage/memory"
-	"github.com/seftomsk/abf/limiter"
+	"github.com/seftomsk/abf/interval/access"
+	"github.com/seftomsk/abf/interval/access/storage/memory"
+	"github.com/seftomsk/abf/interval/limiter"
 )
 
 type ResponseDTO struct {
@@ -257,7 +257,7 @@ func BlackAndWhite(a *access.IPAccess, next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func Limiter(limiter *limiter.MultiLimiter) func(
+func Limiter(l *limiter.MultiLimiter) func(
 	w http.ResponseWriter,
 	r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -275,7 +275,7 @@ func Limiter(limiter *limiter.MultiLimiter) func(
 			}
 			return
 		}
-		bucket := limiter.GetBucket(
+		bucket := l.GetBucket(
 			dto.Login,
 			dto.Password,
 			dto.IP)
@@ -305,8 +305,8 @@ func Limiter(limiter *limiter.MultiLimiter) func(
 
 func getAuthHandler(
 	a *access.IPAccess,
-	limiter *limiter.MultiLimiter) http.HandlerFunc {
-	return CheckRequest(BlackAndWhite(a, Limiter(limiter)))
+	l *limiter.MultiLimiter) http.HandlerFunc {
+	return CheckRequest(BlackAndWhite(a, Limiter(l)))
 }
 
 func main() {

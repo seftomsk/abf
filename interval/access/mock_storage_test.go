@@ -6,10 +6,10 @@ package access_test
 
 import (
 	context "context"
+	"github.com/seftomsk/abf/interval/access/storage"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	storage "github.com/seftomsk/abf/access/storage"
 )
 
 // MockIStorage is a mock of IStorage interface.

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/seftomsk/abf/access/storage"
-	"github.com/seftomsk/abf/access/storage/memory"
+	"github.com/seftomsk/abf/interval/access/storage"
+	"github.com/seftomsk/abf/interval/access/storage/memory"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/seftomsk/abf/access/storage"
+	"github.com/seftomsk/abf/interval/access/storage"
 )
 
 const (

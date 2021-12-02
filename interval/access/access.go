@@ -9,7 +9,7 @@ import (
 	"net"
 
 	"github.com/google/uuid"
-	"github.com/seftomsk/abf/access/storage"
+	"github.com/seftomsk/abf/interval/access/storage"
 )
 
 var ErrInvalidStorage = errors.New("you must provide a storage")
