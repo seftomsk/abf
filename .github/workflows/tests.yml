@@ -42,10 +42,10 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-#
-#      - name: make lint
-#        run: make lint
-#        working-directory: abf
+
+      - name: make lint
+        run: make lint
+        #working-directory: abf
 #
 #      - name: make build
 #        run: make build
