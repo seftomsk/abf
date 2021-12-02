@@ -6,7 +6,7 @@ package access_test
 
 import (
 	context "context"
-	"github.com/seftomsk/abf/interval/access/storage"
+	"github.com/seftomsk/abf/internal/access/storage"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"

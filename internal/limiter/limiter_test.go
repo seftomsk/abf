@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/seftomsk/abf/interval/limiter"
+	"github.com/seftomsk/abf/internal/limiter"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )

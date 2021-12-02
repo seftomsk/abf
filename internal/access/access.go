@@ -9,7 +9,8 @@ import (
 	"net"
 
 	"github.com/google/uuid"
-	"github.com/seftomsk/abf/interval/access/storage"
+	"github.com/seftomsk/abf/internal/access/storage"
+	"github.com/seftomsk/abf/internal/access/storage/memory"
 )
 
 var ErrInvalidStorage = errors.New("you must provide a storage")
@@ -27,6 +28,8 @@ func (e *ErrParseIP) Error() string {
 	return e.msg
 }
 
+const mem = "mem"
+
 type IStorage interface {
 	AddToWList(ctx context.Context, ip storage.IPEntity) error
 	AddToBList(ctx context.Context, ip storage.IPEntity) error
@@ -34,6 +37,13 @@ type IStorage interface {
 	DeleteFromBlackList(ctx context.Context, ip storage.IPEntity) error
 	IsInWList(ctx context.Context, ip storage.IPEntity) (bool, error)
 	IsInBList(ctx context.Context, ip storage.IPEntity) (bool, error)
+}
+
+func GetStorage(storageType string) (IStorage, error) {
+	if storageType == mem {
+		return memory.Create(), nil
+	}
+	return nil, fmt.Errorf("not implemented other storage")
 }
 
 type IPAccess struct {

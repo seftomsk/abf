@@ -16,14 +16,6 @@ func ValidEntity(ip IPEntity) bool {
 	return true
 }
 
-func ValidWholeEntity(ip IPEntity) bool {
-	if !ValidEntity(ip) || ip.ID() == "" {
-		return false
-	}
-
-	return true
-}
-
 type IPEntity interface {
 	ID() string
 	IP() string

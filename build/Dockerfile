@@ -20,4 +20,8 @@ FROM alpine:3.15.0
 
 ENV BIN_FILE "/opt/abf/abf-app"
 COPY --from=build ${BIN_FILE} ${BIN_FILE}
+
+ENV CONFIG_FILE /etc/abf/config.json
+COPY ./configs/config.json ${CONFIG_FILE}
+
 CMD ${BIN_FILE}

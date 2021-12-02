@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/seftomsk/abf/interval/access"
-	"github.com/seftomsk/abf/interval/access/storage"
-	"github.com/seftomsk/abf/interval/access/storage/memory"
+	"github.com/seftomsk/abf/internal/access"
+	"github.com/seftomsk/abf/internal/access/storage"
+	"github.com/seftomsk/abf/internal/access/storage/memory"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -32,6 +32,18 @@ func (s *AccessSuite) SetupTest() {
 	s.access = access.NewIPAccess(memory.Create())
 	s.emptyDTO = access.IPDTO{}
 	s.validDTO = access.IPDTO{IP: "192.1.1.0/25"}
+}
+
+func (s *AccessSuite) TestGetStorageWithoutErr() {
+	rep, err := access.GetStorage("mem")
+	require.NoError(s.T(), err)
+	_, ok := rep.(*memory.InMemory)
+	require.True(s.T(), ok)
+}
+
+func (s *AccessSuite) TestGetStorageWithIncorrectTypeGetErr() {
+	_, err := access.GetStorage("")
+	require.Error(s.T(), err)
 }
 
 func (s *AccessSuite) TestInvalidStorageGetErr() {
