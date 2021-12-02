@@ -9,6 +9,9 @@ jobs:
   go_get:
     runs-on: ubuntu-latest
     steps:
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
       - name: Extract branch name
         run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
